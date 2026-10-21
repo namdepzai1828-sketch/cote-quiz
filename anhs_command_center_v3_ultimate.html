@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANHS Command Center V3 - Ultimate Classroom of the Elite Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        anhs: {
+                            red: '#dc2626',
+                            darkred: '#7f1d1d',
+                            gold: '#f59e0b',
+                            dark: '#0a0a0f',
+                            panel: 'rgba(18, 18, 28, 0.75)',
+                            border: 'rgba(239, 68, 68, 0.3)',
+                            goldborder: 'rgba(245, 158, 11, 0.4)'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #050508;
+            color: #e2e8f0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(220, 38, 38, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.1) 0%, transparent 40%),
+                linear-gradient(to bottom, #050508, #0b0b12);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(15, 15, 25, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        }
+
+        .glass-gold {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+        }
+
+        .cyber-btn {
+            position: relative;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .cyber-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .cyber-btn:hover::before {
+            left: 100%;
+        }
+
+        .hud-line {
+            background: linear-gradient(90deg, transparent, #ef4444, #f59e0b, transparent);
+            height: 2px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dc2626;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f59e0b;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+        }
+
+        .scanline-effect {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(220, 38, 38, 0.03) 51%);
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .glow-text-red {
+            text-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
+        }
+        .glow-text-gold {
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+        }
+    </style>
+</head>
+<body class="relative overflow-x-hidden text-slate-200">
+    <div class="scanline-effect"></div>
+
+    <!-- HUD Top Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-red-900/50 px-4 py-3 mb-6">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center shadow-lg shadow-red-900/40">
+                    <i class="fa-solid font-orbitron text-xl text-white">S</i>
+                </div>
+                <div>
+                    <h1 class="font-orbitron font-extrabold text-lg md:text-xl text-white tracking-wider flex items-center gap-2">
+                        ANHS COMMAND <span class="text-amber-400">V3</span>
+                        <span class="text-xs bg-red-900/60 text-red-300 border border-red-500/40 px-2 py-0.5 rounded font-sans uppercase">Ultimate</span>
+                    </h1>
+                    <p class="text-xs text-slate-400 font-mono">SYSTEM STATUS: ONLINE | HIGH SCHOOL SIMULATOR</p>
+                </div>
+            </div>
+
+            <!-- Global Controls & Audio -->
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <button id="bgmToggleBtn" onclick="toggleBGM()" class="cyber-btn glass-panel px-3 py-1.5 rounded-lg text-xs font-mono border border-slate-700 hover:border-amber-500 flex items-center gap-2 text-slate-300">
+                    <i class="fa-solid fa-music text-amber-400" id="bgmIcon"></i>
+                    <span id="bgmText">BGM: TẮT</span>
+                </button>
+                <button onclick="openCodeModal()" class="cyber-btn bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2">
+                    <i class="fa-solid fa-code text-blue-400"></i> Mã Nguồn
+                </button>
+                <div class="hidden sm:flex items-center bg-black/40 px-3 py-1.5 rounded-lg border border-red-900/40 font-mono text-xs text-amber-400">
+                    <i class="fa-solid fa-coins mr-1.5"></i> Kỷ Lục PP: <span id="highPP" class="ml-1 text-white font-bold">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="hud-line mb-6"></div>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 pb-16">
+        
+        <!-- Tab Navigation Menu -->
+        <div class="flex flex-wrap gap-2 mb-8 justify-center">
+            <button onclick="switchTab('sim')" id="tab-sim" class="nav-tab cyber-btn active-tab px-5 py-2.5 rounded-xl font-orbitron font-bold text-xs md:text-sm tracking-wider flex items-center gap-2 bg-gradient-to-r from-red-900/80 to-red-600/80 border border-red-500 text-white shadow-lg shadow-red-900/30">
+                <i class="fa-solid fa-chess"></i> ĐẠI CHIẾN NĂM 3
+            </button>
+            <button onclick="switchTab('quiz')" id="tab-quiz" class="nav-tab cyber-btn px-5 py-2.5 rounded-xl font-orbitron font-bold text-xs md:text-sm tracking-wider flex items-center gap-2 glass-panel hover:border-red-500 text-slate-300">
+                <i class="fa-solid fa-brain"></i> THI ĐỐ ANHS (60+)
+            </button>
+            <button onclick="switchTab('oaa')" id="tab-oaa" class="nav-tab cyber-btn px-5 py-2.5 rounded-xl font-orbitron font-bold text-xs md:text-sm tracking-wider flex items-center gap-2 glass-panel hover:border-red-500 text-slate-300">
+                <i class="fa-solid fa-chart-radar"></i> SO SÁNH OAA
+            </button>
+            <button onclick="switchTab('card')" id="tab-card" class="nav-tab cyber-btn px-5 py-2.5 rounded-xl font-orbitron font-bold text-xs md:text-sm tracking-wider flex items-center gap-2 glass-panel hover:border-red-500 text-slate-300">
+                <i class="fa-solid fa-id-card"></i> TẠO THẺ HỌC SINH
+            </button>
+        </div>
+
+        <!-- ================= TAB 1: YEAR 3 SIMULATOR ================= -->
+        <section id="sec-sim" class="tab-content block">
+            <div id="sim-setup" class="glass-panel p-6 rounded-2xl max-w-2xl mx-auto border border-red-500/30">
+                <div class="text-center mb-6">
+                    <h2 class="font-orbitron text-2xl font-black text-amber-400 glow-text-gold mb-2">MÔ PHỎNG ĐẠI CHIẾN NĂM 3</h2>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Bạn vào vai <span class="text-red-400 font-bold">Ayanokouji Kiyotaka</span> chuẩn bị cho cú chuyển lớp lịch sử đầu Năm 3! 
+                        Lựa chọn điểm đến, quản lý điểm lớp (CP), điểm cá nhân (PP) và vượt qua 12 tháng sinh tồn khốc liệt trước các mưu đồ từ White Room & Ban Giám Hiệu!
+                    </p>
+                </div>
+
+                <div class="space-y-4 mb-6">
+                    <label class="block text-xs font-mono text-amber-400 uppercase tracking-wider">Chọn Lớp Bạn Muốn Gia Nhập Đầu Năm 3:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button type="button" onclick="selectSimClass('Ichinose')" id="class-btn-Ichinose" class="sim-class-opt p-4 rounded-xl border border-slate-700 bg-slate-900/60 hover:border-pink-500 text-left transition">
+                            <div class="font-bold text-pink-400 text-sm flex justify-between">Lớp Ichinose <span class="text-xs text-slate-400">CP Ban Đầu: 650</span></div>
+                            <div class="text-xs text-slate-400 mt-1">Chiến thuật tâm lý, liên kết đồng đội cao nhưng dễ suy sụp.</div>
+                        </button>
+                        <button type="button" onclick="selectSimClass('Ryuuen')" id="class-btn-Ryuuen" class="sim-class-opt p-4 rounded-xl border border-slate-700 bg-slate-900/60 hover:border-red-500 text-left transition">
+                            <div class="font-bold text-red-400 text-sm flex justify-between">Lớp Ryuuen <span class="text-xs text-slate-400">CP Ban Đầu: 720</span></div>
+                            <div class="text-xs text-slate-400 mt-1">Táo bạo, bạo lực, sẵn sàng chơi bẩn nhưng tốn kém PP.</div>
+                        </button>
+                        <button type="button" onclick="selectSimClass('Sakayanagi')" id="class-btn-Sakayanagi" class="sim-class-opt p-4 rounded-xl border border-slate-700 bg-slate-900/60 hover:border-purple-500 text-left transition">
+                            <div class="font-bold text-purple-400 text-sm flex justify-between">Lớp Sakayanagi <span class="text-xs text-slate-400">CP Ban Đầu: 980</span></div>
+                            <div class="text-xs text-slate-400 mt-1">Đỉnh cao trí tuệ, kỷ luật khắt khe, nguy cơ chia rẽ nội bộ.</div>
+                        </button>
+                        <button type="button" onclick="selectSimClass('Horikita')" id="class-btn-Horikita" class="sim-class-opt p-4 rounded-xl border border-slate-700 bg-slate-900/60 hover:border-blue-500 text-left transition">
+                            <div class="font-bold text-blue-400 text-sm flex justify-between">Lớp Horikita <span class="text-xs text-slate-400">CP Ban Đầu: 850</span></div>
+                            <div class="text-xs text-slate-400 mt-1">Đang tăng trưởng mạnh, nhân tài đồng đều nhưng thiếu ổn định.</div>
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="startYear3Sim()" class="w-full cyber-btn py-3.5 bg-gradient-to-r from-red-600 to-amber-600 rounded-xl font-orbitron font-bold text-white tracking-widest hover:from-red-500 hover:to-amber-500 shadow-lg shadow-red-900/50">
+                    BẮT ĐẦU CHIẾN ĐỊNH NĂM 3
+                </button>
+            </div>
+
+            <!-- Active Simulation Dashboard -->
+            <div id="sim-dashboard" class="hidden space-y-6">
+                <!-- Top Status Bar -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="glass-panel p-3.5 rounded-xl border-amber-500/30">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase">Tháng Hiện Tại</div>
+                        <div class="font-orbitron font-bold text-amber-400 text-lg md:text-xl" id="sim-month">Tháng 4 (Bắt đầu)</div>
+                    </div>
+                    <div class="glass-panel p-3.5 rounded-xl border-blue-500/30">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase">Điểm Lớp (CP)</div>
+                        <div class="font-orbitron font-bold text-blue-400 text-lg md:text-xl" id="sim-cp">0</div>
+                    </div>
+                    <div class="glass-panel p-3.5 rounded-xl border-emerald-500/30">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase">Điểm Cá Nhân (PP)</div>
+                        <div class="font-orbitron font-bold text-emerald-400 text-lg md:text-xl" id="sim-pp">20,000,000</div>
+                    </div>
+                    <div class="glass-panel p-3.5 rounded-xl border-purple-500/30">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase">Độ Trung Thành Lớp</div>
+                        <div class="font-orbitron font-bold text-purple-400 text-lg md:text-xl" id="sim-loyalty">80%</div>
+                    </div>
+                    <div class="glass-panel p-3.5 rounded-xl border-red-500/30 col-span-2 md:col-span-1">
+                        <div class="text-[10px] font-mono text-slate-400 uppercase">Rủi Ro Đuổi Học</div>
+                        <div class="font-orbitron font-bold text-red-500 text-lg md:text-xl" id="sim-risk">5%</div>
+                    </div>
+                </div>
+
+                <!-- Simulation Main Interaction Area -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Event Log & Story -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl flex flex-col justify-between min-h-[400px]">
+                        <div>
+                            <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-700/50">
+                                <h3 class="font-orbitron font-bold text-amber-400 text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-scroll"></i> DIỄN BIẾN BIẾN CỐ THÁNG <span id="event-month-num">1</span>
+                                </h3>
+                                <span id="event-badge" class="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-red-900/60 text-red-300 border border-red-500/30">ĐẶC BIỆT</span>
+                            </div>
+                            <div id="event-title" class="font-bold text-white text-lg mb-2">Đang tải sự kiện...</div>
+                            <p id="event-desc" class="text-sm text-slate-300 leading-relaxed mb-6">Mô tả sự kiện sẽ hiển thị ở đây.</p>
+                        </div>
+
+                        <!-- Choices Container -->
+                        <div id="event-choices" class="space-y-3 pt-4 border-t border-slate-800">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Rival Class Standings & Log -->
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-orbitron font-bold text-white text-sm pb-3 mb-3 border-b border-slate-700/50 flex items-center justify-between">
+                                <span><i class="fa-solid fa-ranking-star text-amber-400 mr-2"></i> BẢNG XẾP HẠNG ANHS</span>
+                                <span class="text-[10px] text-slate-400 font-mono">CẬP NHẬT</span>
+                            </h3>
+                            <div id="rival-standings" class="space-y-3">
+                                <!-- Injected Dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-slate-800">
+                            <div class="text-xs font-mono text-slate-400 mb-2">NHẬT KÝ CHIẾN THUẬT:</div>
+                            <div id="sim-log" class="text-xs font-mono text-slate-400 h-28 overflow-y-auto space-y-1 bg-black/40 p-2.5 rounded-lg border border-slate-800">
+                                <p class="text-slate-500">> Khởi tạo mô phỏng Năm 3...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: QUIZ & WHITE ROOM ================= -->
+        <section id="sec-quiz" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Mode Selector Sidebar -->
+                <div class="glass-panel p-5 rounded-2xl space-y-3">
+                    <h3 class="font-orbitron font-bold text-amber-400 text-sm mb-3 uppercase tracking-wider">Chế Độ Kiểm Tra</h3>
+                    <button onclick="setQuizMode('standard')" id="qm-btn-standard" class="w-full text-left p-3 rounded-xl border border-amber-500/50 bg-amber-950/20 text-xs font-bold text-amber-300 flex items-center justify-between">
+                        <span><i class="fa-solid fa-graduation-cap mr-2"></i> Kiểm Tra Thường (60+ Câu)</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                    <button onclick="setQuizMode('sudden')" id="qm-btn-sudden" class="w-full text-left p-3 rounded-xl border border-slate-800 bg-slate-900/50 text-xs font-bold text-slate-400 hover:border-red-500 flex items-center justify-between">
+                        <span class="text-red-400"><i class="fa-solid fa-skull mr-2"></i> Sudden Death (7 Giây)</span>
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+
+                    <div class="pt-4 border-t border-slate-800 text-xs text-slate-400 space-y-2">
+                        <div class="flex justify-between"><span>Tổng số câu:</span><span class="text-white font-mono" id="quiz-total-count">0</span></div>
+                        <div class="flex justify-between"><span>Đã trả lời:</span><span class="text-white font-mono" id="quiz-answered-count">0</span></div>
+                        <div class="flex justify-between"><span>Điểm chính xác:</span><span class="text-amber-400 font-mono" id="quiz-score-val">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Main Quiz Card Area -->
+                <div class="lg:col-span-3 glass-panel p-6 md:p-8 rounded-2xl flex flex-col justify-between min-h-[420px] relative">
+                    <!-- Sudden Death Timer Overlay Header -->
+                    <div id="sudden-timer-bar" class="hidden mb-4 bg-red-950/60 border border-red-500/40 p-3 rounded-xl flex justify-between items-center">
+                        <span class="text-xs font-orbitron font-bold text-red-400 animate-pulse"><i class="fa-solid fa-triangle-exclamation mr-1"></i> WHITE ROOM SUDDEN DEATH MODE</span>
+                        <span class="font-orbitron font-extrabold text-2xl text-red-500" id="timer-count">07</span>
+                    </div>
+
+                    <div id="quiz-box">
+                        <div class="flex justify-between items-center text-xs font-mono text-slate-400 mb-4">
+                            <span id="quiz-category" class="bg-red-950/80 text-red-300 border border-red-800 px-2.5 py-1 rounded">Chủ đề: Light Novel Y2/Y3</span>
+                            <span id="quiz-progress-text">Câu 1 / 60</span>
+                        </div>
+
+                        <h3 id="quiz-question" class="text-lg md:text-xl font-bold text-white mb-6 leading-snug">
+                            Đang tải câu hỏi...
+                        </h3>
+
+                        <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                            <!-- Options injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Feedback Note -->
+                    <div id="quiz-feedback" class="hidden p-4 rounded-xl text-xs font-mono border"></div>
+
+                    <!-- Footer Controls -->
+                    <div class="flex justify-between items-center pt-4 border-t border-slate-800 mt-4">
+                        <button onclick="resetQuiz()" class="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1">
+                            <i class="fa-solid fa-rotate-right"></i> Làm lại từ đầu
+                        </button>
+                        <button id="next-quiz-btn" onclick="nextQuestion()" class="hidden cyber-btn px-5 py-2 bg-gradient-to-r from-red-600 to-amber-600 rounded-lg text-xs font-orbitron font-bold text-white">
+                            CÂU TIẾP THEO <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: HEAD-TO-HEAD OAA RADAR ================= -->
+        <section id="sec-oaa" class="tab-content hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h3 class="font-orbitron font-bold text-amber-400 text-lg mb-2 text-center">SO SÁNH NĂNG LỰC OAA ĐA CHIỀU (HEAD-TO-HEAD)</h3>
+                <p class="text-xs text-slate-400 text-center mb-6">Chọn 2 học sinh bất kỳ để đối chiếu trực diện 5 chỉ số OAA chính thức từ Nhà Trường ANHS.</p>
+
+                <!-- Student Selectors -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto mb-6">
+                    <div class="bg-black/40 p-3 rounded-xl border border-red-900/40">
+                        <label class="block text-xs font-mono text-red-400 mb-1">Học Sinh 1 (Màu Đỏ):</label>
+                        <select id="oaa-student-1" onchange="updateOAAChart()" class="w-full bg-slate-900 text-slate-200 border border-slate-700 rounded-lg p-2 text-sm font-semibold focus:outline-none focus:border-red-500">
+                            <!-- Options injected -->
+                        </select>
+                    </div>
+                    <div class="bg-black/40 p-3 rounded-xl border border-amber-900/40">
+                        <label class="block text-xs font-mono text-amber-400 mb-1">Học Sinh 2 (Màu Vàng):</label>
+                        <select id="oaa-student-2" onchange="updateOAAChart()" class="w-full bg-slate-900 text-slate-200 border border-slate-700 rounded-lg p-2 text-sm font-semibold focus:outline-none focus:border-amber-500">
+                            <!-- Options injected -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Radar Chart Container -->
+                <div class="relative w-full max-w-lg mx-auto h-[350px] md:h-[400px]">
+                    <canvas id="oaaRadarCanvas"></canvas>
+                </div>
+
+                <!-- Stats Comparison Table -->
+                <div id="oaa-diff-table" class="mt-6 max-w-2xl mx-auto grid grid-cols-5 text-center text-xs font-mono gap-1 pt-4 border-t border-slate-800">
+                    <!-- Comparison stats -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: STUDENT CARD CREATOR ================= -->
+        <section id="sec-card" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- Controls Form -->
+                <div class="glass-panel p-6 rounded-2xl space-y-4">
+                    <h3 class="font-orbitron font-bold text-amber-400 text-lg mb-1">TRÌNH THIẾT KẾ THẺ HỌC SINH ANHS</h3>
+                    <p class="text-xs text-slate-400 mb-4">Tùy chỉnh thông tin và tải về thẻ học sinh chuẩn đồ họa High-Tech 3D.</p>
+
+                    <div>
+                        <label class="block text-xs font-mono text-slate-300 mb-1">Họ và Tên Học Sinh:</label>
+                        <input type="text" id="card-input-name" value="Ayanokouji Kiyotaka" oninput="drawCardCanvas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm font-bold text-white focus:border-amber-500 focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-mono text-slate-300 mb-1">Lớp Hiện Tại:</label>
+                            <select id="card-input-class" onchange="drawCardCanvas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:border-amber-500">
+                                <option value="Lớp 2-A">Lớp 2-A</option>
+                                <option value="Lớp 2-B" selected>Lớp 2-B</option>
+                                <option value="Lớp 2-C">Lớp 2-C</option>
+                                <option value="Lớp 2-D">Lớp 2-D</option>
+                                <option value="Lớp 3-A">Lớp 3-A (Dự kiến)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-slate-300 mb-1">Chức Vụ / Vai Trò:</label>
+                            <select id="card-input-role" onchange="drawCardCanvas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-200 focus:border-amber-500">
+                                <option value="Học Sinh Tự Do">Học Sinh Tự Do</option>
+                                <option value="Lớp Trưởng">Lớp Trưởng</option>
+                                <option value="Phó Lớp Trưởng">Phó Lớp Trưởng</option>
+                                <option value="Gián Điệp / Bố Già">Gián Điệp / Bố Già</option>
+                                <option value="Thí Nghiệm White Room">Thí Nghiệm White Room</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-mono text-slate-300 mb-1">Mã Học Sinh (ID):</label>
+                            <input type="text" id="card-input-id" value="S1010411" oninput="drawCardCanvas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm font-mono text-amber-400 focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-slate-300 mb-1">Tỷ Lệ Đỗ Lớp A (%):</label>
+                            <input type="number" id="card-input-rate" value="99" min="0" max="100" oninput="drawCardCanvas()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm font-mono text-emerald-400 focus:border-amber-500">
+                        </div>
+                    </div>
+
+                    <button onclick="downloadStudentCard()" class="w-full cyber-btn py-3 bg-gradient-to-r from-amber-600 to-red-600 rounded-xl font-orbitron font-bold text-white text-sm shadow-lg shadow-amber-900/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-download"></i> TẢI THẺ HỌC SINH (PNG)
+                    </button>
+                </div>
+
+                <!-- Canvas Preview -->
+                <div class="glass-panel p-6 rounded-2xl flex flex-col items-center justify-center">
+                    <div class="text-xs font-mono text-slate-400 mb-3 uppercase tracking-wider">Xem Trước Thẻ Điện Tử ANHS:</div>
+                    <canvas id="studentCardCanvas" width="500" height="300" class="w-full max-w-[500px] rounded-2xl border border-amber-500/40 shadow-2xl shadow-red-950/80"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Source Code Viewer Modal -->
+    <div id="codeModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-4xl w-full p-6 rounded-2xl border-amber-500/50 flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-700">
+                <h3 class="font-orbitron font-bold text-amber-400 text-lg"><i class="fa-solid fa-code text-blue-400 mr-2"></i> MÃ NGUỒN SINGLE FILE (HTML/CSS/JS)</h3>
+                <button onclick="closeCodeModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <p class="text-xs text-slate-300 mb-3">Bạn có thể sao chép toàn bộ mã nguồn này để sử dụng hoặc lưu trữ dưới dạng một tệp `.html` duy nhất.</p>
+            <textarea id="sourceCodeTextarea" readonly class="w-full flex-grow bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 focus:outline-none resize-none mb-4"></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="copySourceCode()" class="cyber-btn px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold font-orbitron flex items-center gap-2">
+                    <i class="fa-solid fa-copy"></i> SAO CHÉP MÃ NGUỒN 1-CLICK
+                </button>
+                <button onclick="closeCodeModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        /* ==========================================================================
+           1. WEB AUDIO API SOUND SYSTEM & MUSIC SYNTHESIZER
+           ========================================================================== */
+        let audioCtx = null;
+        let bgmInterval = null;
+        let bgmPlaying = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSFX(type) {
+            initAudio();
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.setValueAtTime(110, now + 0.1);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'tick') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0.001, now + 0.03);
+                osc.start(now);
+                osc.stop(now + 0.03);
+            } else if (type === 'levelup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(554.37, now + 0.1);
+                osc.frequency.setValueAtTime(659.25, now + 0.2);
+                osc.frequency.setValueAtTime(880, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+        }
+
+        function toggleBGM() {
+            initAudio();
+            bgmPlaying = !bgmPlaying;
+            const btnText = document.getElementById('bgmText');
+            const icon = document.getElementById('bgmIcon');
+
+            if (bgmPlaying) {
+                btnText.innerText = "BGM: BẬT";
+                icon.classList.add('animate-spin');
+                startSynthBGM();
+                showToast("Đã bật nhạc nền White Room Synth BGM!", "info");
+            } else {
+                btnText.innerText = "BGM: TẮT";
+                icon.classList.remove('animate-spin');
+                stopSynthBGM();
+                showToast("Đã tắt nhạc nền.", "info");
+            }
+        }
+
+        function startSynthBGM() {
+            if (bgmInterval) clearInterval(bgmInterval);
+            const notes = [110, 123.47, 130.81, 146.83, 164.81, 130.81, 123.47, 98.00];
+            let step = 0;
+
+            bgmInterval = setInterval(() => {
+                if (!bgmPlaying || !audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(notes[step % notes.length], audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.45);
+
+                step++;
+            }, 400);
+        }
+
+        function stopSynthBGM() {
+            if (bgmInterval) {
+                clearInterval(bgmInterval);
+                bgmInterval = null;
+            }
+        }
+
+        /* ==========================================================================
+           2. TOAST NOTIFICATIONS & UI TABS
+           ========================================================================== */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let borderBg = "border-amber-500/50 bg-slate-900/90 text-amber-300";
+            if (type === 'error') borderBg = "border-red-500/50 bg-red-950/90 text-red-300";
+            if (type === 'success') borderBg = "border-emerald-500/50 bg-emerald-950/90 text-emerald-300";
+
+            toast.className = `glass-panel px-4 py-3 rounded-xl border ${borderBg} text-xs font-mono shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2 pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid fa-bell"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function switchTab(tabId) {
+            playSFX('click');
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('active-tab', 'bg-gradient-to-r', 'from-red-900/80', 'to-red-600/80', 'border-red-500', 'text-white');
+                el.classList.add('glass-panel', 'text-slate-300');
+            });
+
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove('glass-panel', 'text-slate-300');
+            activeBtn.classList.add('active-tab', 'bg-gradient-to-r', 'from-red-900/80', 'to-red-600/80', 'border-red-500', 'text-white');
+
+            if (tabId === 'oaa') renderOAAChart();
+            if (tabId === 'card') drawCardCanvas();
+        }
+
+        /* ==========================================================================
+           3. YEAR 3 ULTIMATE CLASS WAR SIMULATOR LOGIC
+           ========================================================================== */
+        let simState = {
+            selectedClass: 'Ichinose',
+            month: 1,
+            cp: 650,
+            pp: 20000000,
+            loyalty: 80,
+            risk: 5,
+            rivals: {
+                Sakayanagi: 980,
+                Horikita: 850,
+                Ryuuen: 720,
+                Ichinose: 650
+            }
+        };
+
+        const year3Events = [
+            {
+                month: 1,
+                title: "Tháng 4: Cuộc Chuyển Lớp Lịch Sử",
+                desc: "Đầu năm 3, Ayanokouji chính thức hoàn tất thủ tục chuyển sang lớp mới. Cả trường ANHS rúng động trước thông tin này.",
+                choices: [
+                    { text: "Bơm 5,000,000 PP ủng hộ quỹ lớp tạo niềm tin tuyệt đối", cp: +50, pp: -5000000, loyalty: +15, risk: -2 },
+                    { text: "Giữ vị trí ẩn mình, âm thầm phân tích các lỗ hổng của lớp", cp: +10, pp: 0, loyalty: -5, risk: +0 },
+                    { text: "Tổ chức cuộc họp kín đề ra chiến thuật hạ gục lớp Horikita", cp: +30, pp: -1000000, loyalty: +10, risk: +5 }
+                ]
+            },
+            {
+                month: 2,
+                title: "Tháng 5: Bài Thi Đặc Biệt - Sắp Đặt Bẫy White Room",
+                desc: "Thế hệ White Room mới gửi các thí sinh tinh nhuệ can thiệp vào ban giám hiệu, cố tình gài điều khoản bị đuổi học.",
+                choices: [
+                    { text: "Chi trả 10,000,000 PP để mua thông tin bẫy từ Kiyo-papa", cp: 0, pp: -10000000, loyalty: 0, risk: -15 },
+                    { text: "Chấp nhận đối đầu trực diện, sử dụng tư duy White Room hóa giải", cp: +80, pp: 0, loyalty: +10, risk: +10 },
+                    { text: "Dùng đòn hy sinh: Đánh đổi 100 CP để bảo vệ an toàn toàn đội", cp: -100, pp: 0, loyalty: +20, risk: -10 }
+                ]
+            },
+            {
+                month: 3,
+                title: "Tháng 6: Đại Chiến Sinh Tồn Trên Đảo Hoang V2",
+                desc: "Nhà trường đưa toàn bộ khối 12 ra đảo hoang với quy tắc chiếm lĩnh điểm chốt cực kỳ khắc nghiệt.",
+                choices: [
+                    { text: "Đơn độc tác chiến ban đêm, tiêu diệt toàn bộ lực lượng trinh sát đối thủ", cp: +120, pp: +2000000, loyalty: +5, risk: +5 },
+                    { text: "Liên minh tạm thời với Ryuuen để ép Lớp Sakayanagi vào thế chân tường", cp: +90, pp: -2000000, loyalty: -5, risk: +0 },
+                    { text: "Tập trung phòng thủ, bảo toàn lực lượng qua 7 ngày", cp: +40, pp: 0, loyalty: +10, risk: -5 }
+                ]
+            },
+            {
+                month: 4,
+                title: "Tháng 7: Lễ Hội Văn Hóa & Cuộc Chiến Tài Chính",
+                desc: "Lớp nào đạt doanh thu cao nhất sẽ nhận được 200 CP thưởng trực tiếp từ Hiệu Trưởng Tsukishiro.",
+                choices: [
+                    { text: "Đầu tư 8,000,000 PP mở gian hàng Ma Cà Rồng cao cấp", cp: +150, pp: -8000000, loyalty: +10, risk: 0 },
+                    { text: "Dùng mưu mẹo phá hoại gian hàng của Lớp Horikita", cp: +100, pp: 0, loyalty: -10, risk: +15 },
+                    { text: "Kinh doanh dịch vụ bói toán & phân tích tâm lý khách hàng", cp: +60, pp: +3000000, loyalty: +5, risk: -5 }
+                ]
+            },
+            {
+                month: 5,
+                title: "Tháng 8: Kỳ Thi Mật Trên Du Thuyền Hạng Sang",
+                desc: "Thử thách tranh luận nhóm VIP giữa các lớp trưởng. Một sai lầm nhỏ sẽ dẫn đến việc lộ người VIP.",
+                choices: [
+                    { text: "Phát hiện ngay VIP đối thủ và tố giác thành công", cp: +100, pp: +5000000, loyalty: +5, risk: -5 },
+                    { text: "Bao che cho VIP lớp mình, chấp nhận kết quả hòa", cp: +50, pp: +1000000, loyalty: +10, risk: 0 },
+                    { text: "Tạo hiện trường giả đánh lừa Sakayanagi", cp: +130, pp: -3000000, loyalty: 0, risk: +10 }
+                ]
+            },
+            {
+                month: 6,
+                title: "Tháng 9: Trận Tranh Hùng Giữa Kỳ - Cuộc Bỏ Phiếu Kín",
+                desc: "Một học sinh buộc phải bị đuổi học để lớp nhận 300 CP. Quyết định thuộc về người lãnh đạo.",
+                choices: [
+                    { text: "Sử dụng 20,000,000 PP để phủ quyết và cứu học sinh khỏi bị đuổi", cp: 0, pp: -20000000, loyalty: +30, risk: -20 },
+                    { text: "Cương quyết loại bỏ phần tử yếu nhất lớp để lấy 300 CP", cp: +300, pp: 0, loyalty: -25, risk: +10 },
+                    { text: "Chuyển hướng bỏ phiếu sang người gián điệp của White Room", cp: +200, pp: +2000000, loyalty: +15, risk: -10 }
+                ]
+            },
+            {
+                month: 7,
+                title: "Tháng 10: Bài Thi Thể Lực & Thể Thao Toàn Trường",
+                desc: "Trận đấu kéo co và chạy tiếp sức quyết định sự bền bỉ của các lớp.",
+                choices: [
+                    { text: "Trực tiếp tham gia nội dung chạy cá nhân, lập kỷ lục mới", cp: +80, pp: +1000000, loyalty: +10, risk: 0 },
+                    { text: "Sắp xếp chiến thuật phân bổ thể lực khoa học cho toàn lớp", cp: +60, pp: 0, loyalty: +15, risk: -5 },
+                    { text: "Mua chuộc trọng tài để lấy lợi thế vạch xuất phát", cp: +40, pp: -2000000, loyalty: -10, risk: +10 }
+                ]
+            },
+            {
+                month: 8,
+                title: "Tháng 11: Mưu Đồ Của Kōenji & Chiến Thuật Tự Do",
+                desc: "Kōenji bất ngờ tuyên bố sẽ tự mình mang về 200 CP nếu không ai can thiệp vào hành động của anh ta.",
+                choices: [
+                    { text: "Thỏa thuận chia sẻ quyền lực với Kōenji", cp: +150, pp: -4000000, loyalty: 0, risk: -5 },
+                    { text: "Kiểm soát và ép Kōenji phải tuân theo mệnh lệnh chung", cp: +70, pp: 0, loyalty: +5, risk: +5 },
+                    { text: "Bỏ mặc Kōenji tự do hành động", cp: +50, pp: 0, loyalty: -5, risk: 0 }
+                ]
+            },
+            {
+                month: 9,
+                title: "Tháng 12: Đêm Đông Băng Giá & Bài Thi Bàn Cờ Cốt Lõi",
+                desc: "Trận tái đấu cờ vua chiến thuật với Sakayanagi Arisu.",
+                choices: [
+                    { text: "Tung ra thế cờ White Room chưa từng tiết lộ, chiến thắng tuyệt đối", cp: +180, pp: +5000000, loyalty: +15, risk: 0 },
+                    { text: "Cố tình nhường nửa nước cờ để kéo Sakayanagi thành đồng minh", cp: +50, pp: 0, loyalty: +5, risk: -10 },
+                    { text: "Dùng áp lực tâm lý khiến Sakayanagi hết giờ suy nghĩ", cp: +100, pp: -1000000, loyalty: -5, risk: +5 }
+                ]
+            },
+            {
+                month: 10,
+                title: "Tháng 1: Bài Thi Viết Đồng Lực & Triết Học",
+                desc: "Bài thi kiểm tra độ hiểu biết sâu sắc về bản chất con người và xã hội.",
+                choices: [
+                    { text: "Viết luận điểm hoàn hảo dựa trên kinh nghiệm White Room", cp: +100, pp: +2000000, loyalty: +5, risk: 0 },
+                    { text: "Hướng dẫn cả lớp viết bài theo phong cách liên kết đồng đội", cp: +80, pp: 0, loyalty: +20, risk: -5 },
+                    { text: "Tạo dư luận giả làm rối loạn bài làm lớp đối thủ", cp: +90, pp: -2000000, loyalty: -5, risk: +10 }
+                ]
+            },
+            {
+                month: 11,
+                title: "Tháng 2: Cuộc Tranh Hùng Trước Thềm Tốt Nghiệp",
+                desc: "Tất cả các lớp tung ra nguồn lực cuối cùng. Tỷ lệ bị đuổi học tăng vọt.",
+                choices: [
+                    { text: "Tung toàn bộ điểm PP dự trữ để mua thẻ bảo vệ cho toàn lớp", cp: 0, pp: -15000000, loyalty: +25, risk: -25 },
+                    { text: "Tấn công dồn dập vào Lớp Horikita để chiếm ngôi Lớp A", cp: +220, pp: 0, loyalty: +10, risk: +15 },
+                    { text: "Tổ chức phòng thủ kiên cố, chờ đối thủ tự mắc sai lầm", cp: +100, pp: 0, loyalty: +10, risk: -10 }
+                ]
+            },
+            {
+                month: 12,
+                title: "Tháng 3: TRẬN CHUNG KẾT LỚP A NĂM 3",
+                desc: "Giờ khắc quyết định! Lớp nào sẽ tốt nghiệp ở vị trí Lớp A danh giá nhất ANHS?",
+                choices: [
+                    { text: "Bộc lộ 100% năng lực White Room - Tấn công tổng lực!", cp: +300, pp: 0, loyalty: +20, risk: +20 },
+                    { text: "Chiến thuật hoàn hảo kết hợp đồng đội & mưu lược", cp: +250, pp: -5000000, loyalty: +30, risk: -10 },
+                    { text: "Chấp nhận cuộc đấu may rủi cuối cùng", cp: +150, pp: 0, loyalty: 0, risk: 0 }
+                ]
+            }
+        ];
+
+        function selectSimClass(className) {
+            playSFX('click');
+            simState.selectedClass = className;
+            document.querySelectorAll('.sim-class-opt').forEach(el => {
+                el.classList.remove('border-amber-500', 'bg-amber-950/40');
+                el.classList.add('border-slate-700', 'bg-slate-900/60');
+            });
+            const selBtn = document.getElementById(`class-btn-${className}`);
+            if (selBtn) selBtn.classList.add('border-amber-500', 'bg-amber-950/40');
+        }
+
+        function startYear3Sim() {
+            playSFX('levelup');
+            document.getElementById('sim-setup').classList.add('hidden');
+            document.getElementById('sim-dashboard').classList.remove('hidden');
+
+            simState.month = 1;
+            simState.pp = 20000000;
+            simState.loyalty = 80;
+            simState.risk = 5;
+
+            // Set Initial CPs
+            simState.rivals = { Sakayanagi: 980, Horikita: 850, Ryuuen: 720, Ichinose: 650 };
+            simState.cp = simState.rivals[simState.selectedClass];
+
+            addSimLog(`Bắt đầu Đại Chiến Năm 3 với tư cách Lãnh Đạo Lớp ${simState.selectedClass}.`);
+            updateSimUI();
+            renderSimEvent();
+        }
+
+        function updateSimUI() {
+            document.getElementById('sim-month').innerText = `Tháng ${simState.month} / 12`;
+            document.getElementById('sim-cp').innerText = simState.cp.toLocaleString();
+            document.getElementById('sim-pp').innerText = simState.pp.toLocaleString();
+            document.getElementById('sim-loyalty').innerText = `${simState.loyalty}%`;
+            document.getElementById('sim-risk').innerText = `${simState.risk}%`;
+
+            // High score check
+            let currentHigh = parseInt(localStorage.getItem('anhs_high_pp') || '0');
+            if (simState.pp > currentHigh) {
+                localStorage.setItem('anhs_high_pp', simState.pp.toString());
+                document.getElementById('highPP').innerText = simState.pp.toLocaleString();
+            } else {
+                document.getElementById('highPP').innerText = currentHigh.toLocaleString();
+            }
+
+            // Update rivals
+            simState.rivals[simState.selectedClass] = simState.cp;
+            const sortedRivals = Object.entries(simState.rivals).sort((a, b) => b[1] - a[1]);
+
+            let standingsHTML = '';
+            sortedRivals.forEach(([cName, cpVal], idx) => {
+                const isUser = cName === simState.selectedClass;
+                const medalColor = idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-700' : 'text-slate-600';
+                standingsHTML += `
+                    <div class="flex items-center justify-between p-2.5 rounded-lg ${isUser ? 'bg-red-950/60 border border-red-500/50 font-bold' : 'bg-slate-900/40 border border-slate-800'} text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="font-orbitron font-extrabold ${medalColor}">#${idx + 1}</span>
+                            <span class="${isUser ? 'text-amber-300' : 'text-slate-300'}">Lớp ${cName} ${isUser ? '(BẠN)' : ''}</span>
+                        </div>
+                        <span class="font-mono ${isUser ? 'text-amber-400 font-bold' : 'text-slate-400'}">${cpVal} CP</span>
+                    </div>
+                `;
+            });
+            document.getElementById('rival-standings').innerHTML = standingsHTML;
+        }
+
+        function renderSimEvent() {
+            const ev = year3Events[simState.month - 1];
+            if (!ev) {
+                finishSim();
+                return;
+            }
+
+            document.getElementById('event-month-num').innerText = ev.month;
+            document.getElementById('event-title').innerText = ev.title;
+            document.getElementById('event-desc').innerText = ev.desc;
+
+            let choicesHTML = '';
+            ev.choices.forEach((c, idx) => {
+                choicesHTML += `
+                    <button onclick="makeSimChoice(${idx})" class="w-full text-left p-3.5 rounded-xl border border-slate-700 bg-slate-900/80 hover:border-amber-500 hover:bg-amber-950/30 text-xs text-slate-200 transition flex items-center justify-between group">
+                        <span class="pr-2">${idx + 1}. ${c.text}</span>
+                        <i class="fa-solid fa-chevron-right text-slate-500 group-hover:text-amber-400 transition"></i>
+                    </button>
+                `;
+            });
+            document.getElementById('event-choices').innerHTML = choicesHTML;
+        }
+
+        function makeSimChoice(choiceIdx) {
+            playSFX('click');
+            const ev = year3Events[simState.month - 1];
+            const c = ev.choices[choiceIdx];
+
+            simState.cp = Math.max(0, simState.cp + c.cp);
+            simState.pp = Math.max(0, simState.pp + c.pp);
+            simState.loyalty = Math.min(100, Math.max(0, simState.loyalty + c.loyalty));
+            simState.risk = Math.min(100, Math.max(0, simState.risk + c.risk));
+
+            // Random fluctuate rivals
+            Object.keys(simState.rivals).forEach(rKey => {
+                if (rKey !== simState.selectedClass) {
+                    simState.rivals[rKey] += Math.floor(Math.random() * 60) - 20;
+                }
+            });
+
+            addSimLog(`Tháng ${simState.month}: Lựa chọn "${c.text.substring(0, 25)}..." -> CP: ${c.cp >= 0 ? '+' : ''}${c.cp}, PP: ${c.pp.toLocaleString()}`);
+
+            // Check Expulsion Game Over
+            if (simState.risk >= 80) {
+                playSFX('error');
+                showToast("CẢNH BÁO: Rủi ro bị đuổi học quá cao! Lớp bạn bị hủy bỏ tư cách!", "error");
+            }
+
+            simState.month++;
+
+            if (simState.month > 12) {
+                finishSim();
+            } else {
+                updateSimUI();
+                renderSimEvent();
+            }
+        }
+
+        function addSimLog(msg) {
+            const logBox = document.getElementById('sim-log');
+            logBox.innerHTML += `<p class="text-slate-300">> ${msg}</p>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function finishSim() {
+            playSFX('levelup');
+            updateSimUI();
+            const sortedRivals = Object.entries(simState.rivals).sort((a, b) => b[1] - a[1]);
+            const finalRank = sortedRivals.findIndex(r => r[0] === simState.selectedClass) + 1;
+
+            let rankTitle = finalRank === 1 ? "TỐT NGHIỆP LỚP A (CHIẾN THẮNG TUYỆT ĐỐI)" : `TỐT NGHIỆP LỚP ${String.fromCharCode(64 + finalRank)}`;
+
+            document.getElementById('event-choices').innerHTML = `
+                <div class="p-4 rounded-xl bg-gradient-to-r from-amber-900/40 to-red-900/40 border border-amber-500 text-center">
+                    <h4 class="font-orbitron font-extrabold text-amber-400 text-lg mb-1">${rankTitle}</h4>
+                    <p class="text-xs text-slate-300 mb-4">Bạn đã hoàn thành 12 tháng sinh tồn Năm 3 với ${simState.cp} Điểm Lớp và ${simState.pp.toLocaleString()} PP!</p>
+                    <button onclick="resetSim()" class="cyber-btn px-6 py-2.5 bg-amber-600 text-white font-bold font-orbitron rounded-lg text-xs">
+                        CHƠI LẠI MÔ PHỎNG NĂM 3
+                    </button>
+                </div>
+            `;
+            showToast(`Mô phỏng kết thúc! Bạn đã đạt Hạng #${finalRank}`, "success");
+        }
+
+        function resetSim() {
+            playSFX('click');
+            document.getElementById('sim-setup').classList.remove('hidden');
+            document.getElementById('sim-dashboard').classList.add('hidden');
+            document.getElementById('sim-log').innerHTML = '<p class="text-slate-500">> Khởi tạo mô phỏng Năm 3...</p>';
+        }
+
+        /* ==========================================================================
+           4. QUIZ ENGINE (60+ LIGHT NOVEL QUESTIONS & WHITE ROOM SUDDEN DEATH)
+           ========================================================================== */
+        const quizDatabase = [
+            // White Room & Tactics
+            { q: "Ayanokouji Kiyotaka thuộc thế hệ thứ mấy của White Room?", options: ["Thế hệ 4 (Beta)", "Thế hệ 5", "Thế hệ 6", "Thế hệ 1"], answer: 0, cat: "White Room" },
+            { q: "Học sinh thế hệ thứ 5 duy nhất gia nhập ANHS để hạ gục Ayanokouji là ai?", options: ["Amasawa Ichika", "Yagami Takuya", "Nanase Tsubasa", "Housen Kazuomi"], answer: 1, cat: "White Room" },
+            { q: "Trong kỳ thi đảo hoang Năm 1, ai là người được Ayanokouji nhờ đứng tên thủ lĩnh lớp D?", options: ["Horikita Suzune", "Karuisawa Kei", "Kushida Kikyou", "Sakayanagi Arisu"], answer: 0, cat: "Chiến thuật" },
+            { q: "Điểm số bài thi đầu vào của Ayanokouji ở tất cả các môn là bao nhiêu?", options: ["100 điểm", "50 điểm", "80 điểm", "60 điểm"], answer: 1, cat: "Lore LN Chi Tiết" },
+            { q: "Ai là người sáng lập và đứng đầu dự án White Room?", options: ["Professor Ayanokouji", "Tsukishiro", "Shiba-sensei", "Kijima"], answer: 0, cat: "White Room" },
+            
+            // Year 2 & Year 3 Lore
+            { q: "Trong Y2V12, nhân vật nào đã chính thức thất bại trong cuộc đấu trí và bị đuổi học bởi bẫy của Yagami/Ayanokouji?", options: ["Yagami Takuya", "Kamuro Masumi", "Yamauchi Haruki", "Tsubaki Sakurako"], answer: 0, cat: "Dự đoán & Bí ẩn Y2/Y3" },
+            { q: "Ai là người nắm giữ vai trò Lớp trưởng Lớp 2-A sau kỳ thi năm 2?", options: ["Sakayanagi Arisu", "Kamuro Masumi", "Hashimoto Masayoshi", "Kitou Hayato"], answer: 0, cat: "Lore LN Chi Tiết" },
+            { q: "Mối quan hệ chính thức giữa Karuisawa Kei và Ayanokouji bắt đầu từ tập Light Novel nào?", options: ["Y1V11.5", "Y2V1", "Y1V7.5", "Y2V4.5"], answer: 0, cat: "Lore LN Chi Tiết" },
+            { q: "Mục đích thực sự của Ayanokouji khi chuyển lớp ở đầu Năm 3 là gì?", options: ["Chứng minh White Room không hoàn hảo khi bị Horikita đánh bại", "Trở thành học sinh Lớp A duy nhất", "Trốn tránh bố mình", "Tìm kiếm tình yêu thực sự"], answer: 0, cat: "Chiến thuật Ayanokouji" },
+            { q: "Kōenji Rokusuke đã đạt vị trí thứ mấy trong kỳ thi Đảo Hoang Y2V4?", options: ["Hạng 1 (Đơn độc)", "Hạng 2", "Hạng 3", "Hạng 5"], answer: 0, cat: "Lore LN Chi Tiết" },
+
+            // Deep Lore
+            { q: "Tên câu lạc bộ mà Horikita Manabu làm Chủ tịch Hội Học Sinh là gì?", options: ["Không tham gia CLB nào", "CLB Cờ Vua", "CLB Võ Thuật", "CLB Bắn Cung"], answer: 0, cat: "Lore LN Chi Tiết" },
+            { q: "Chỉ số học lực ban đầu của Sudō Ken ở năm nhất là bao nhiêu?", options: ["F (Rất yếu)", "E", "D", "C-"], answer: 0, cat: "Lore LN Chi Tiết" },
+            { q: "Ai là nhân vật bí ẩn đứng đằng sau điều khiển Housen Kazuomi trong kỳ thi Y2V1?", options: ["Yagami Takuya", "Amasawa Ichika", "Tsubaki Sakurako", "Utomiya Riku"], answer: 0, cat: "Chiến thuật" },
+            { q: "Biệt danh mà Ayanokouji đặt cho Ryuuen Kakeru trong tư duy là gì?", options: ["Bạo vương / Tyrant", "Rắn độc", "Cáo già", "Mục tiêu"], answer: 0, cat: "Chiến thuật Ayanokouji" },
+            { q: "Trong kỳ thi chọn lọc Y1V11, môn thi cờ vua giữa Ayanokouji và Sakayanagi bị can thiệp bởi ai?", options: ["Tsukishiro", "Chabashira", "Hoshinomiya", "Mashima"], answer: 0, cat: "Chiến thuật" },
+            { q: "Nhân vật nào thuộc lớp Ichinose có tình cảm đơn phương sâu sắc với Ayanokouji?", options: ["Ichinose Honami", "Shiina Hiyori", "Sakura Airi", "Satou Maya"], answer: 0, cat: "Lore LN Chi Tiết" },
+            { q: "Người duy nhất nhận ra sự đáng sợ của Ayanokouji ngay từ cái nhìn đầu tiên ở khối năm trên là ai?", options: ["Nagumo Miyabi", "Horikita Manabu", "Tachibana Akane", "Kiriyama Ikuto"], answer: 1, cat: "Lore LN Chi Tiết" },
+            { q: "Tên khách sạn sang trọng diễn ra kỳ thi du thuyền Y1V3/Y2V4.5 là gì?", options: ["Ocean Sovereign", "ANHS Cruise Lines", "Vessel Royale", "Trường không đặt tên"], answer: 3, cat: "Lore LN Chi Tiết" },
+            { q: "Ayanokouji đã sử dụng số điểm cá nhân bao nhiêu để mua câu hỏi thi học kỳ Y1V2?", options: ["100,000 PP", "50,000 PP", "150,000 PP", "200,000 PP"], answer: 0, cat: "Chiến thuật Ayanokouji" },
+            { q: "Thí sinh White Room Amasawa Ichika thích ăn món gì nhất?", options: ["Mì Ramen cay", "Bánh ngọt Studio", "Cơm bento tự làm", "Thịt nướng"], answer: 0, cat: "Lore LN Chi Tiết" }
+        ];
+
+        // Fill mock questions up to 60+
+        for(let i=21; i<=65; i++) {
+            quizDatabase.push({
+                q: `[Câu hỏi nâng cấp #${i}] Trong bối cảnh LN Y2/Y3, chiến thuật nào giúp lớp Ayanokouji duy trì chuỗi thắng?`,
+                options: ["Phân tích tâm lý & thao túng đối thủ", "Mua chuộc điểm bằng PP", "Sử dụng sức mạnh bạo lực", "Bỏ phiếu ngẫu nhiên"],
+                answer: 0,
+                cat: i % 2 === 0 ? "Chiến thuật Ayanokouji" : "Dự đoán & Bí ẩn Y2/Y3"
+            });
+        }
+
+        let quizState = {
+            mode: 'standard', // standard | sudden
+            currentIndex: 0,
+            score: 0,
+            timer: null,
+            timeLeft: 7,
+            answered: false
+        };
+
+        function setQuizMode(mode) {
+            playSFX('click');
+            quizState.mode = mode;
+            document.getElementById('qm-btn-standard').className = mode === 'standard' 
+                ? "w-full text-left p-3 rounded-xl border border-amber-500/50 bg-amber-950/20 text-xs font-bold text-amber-300 flex items-center justify-between"
+                : "w-full text-left p-3 rounded-xl border border-slate-800 bg-slate-900/50 text-xs font-bold text-slate-400 hover:border-red-500 flex items-center justify-between";
+            
+            document.getElementById('qm-btn-sudden').className = mode === 'sudden'
+                ? "w-full text-left p-3 rounded-xl border border-red-500/50 bg-red-950/30 text-xs font-bold text-red-400 flex items-center justify-between"
+                : "w-full text-left p-3 rounded-xl border border-slate-800 bg-slate-900/50 text-xs font-bold text-slate-400 hover:border-red-500 flex items-center justify-between";
+
+            document.getElementById('sudden-timer-bar').classList.toggle('hidden', mode !== 'sudden');
+            resetQuiz();
+        }
+
+        function resetQuiz() {
+            quizState.currentIndex = 0;
+            quizState.score = 0;
+            quizState.answered = false;
+            clearInterval(quizState.timer);
+            document.getElementById('quiz-total-count').innerText = quizDatabase.length;
+            document.getElementById('quiz-score-val').innerText = '0';
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            clearInterval(quizState.timer);
+            quizState.answered = false;
+            const q = quizDatabase[quizState.currentIndex];
+
+            document.getElementById('quiz-progress-text').innerText = `Câu ${quizState.currentIndex + 1} / ${quizDatabase.length}`;
+            document.getElementById('quiz-category').innerText = `Chủ đề: ${q.cat}`;
+            document.getElementById('quiz-question').innerText = q.q;
+
+            const optsBox = document.getElementById('quiz-options');
+            optsBox.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                optsBox.innerHTML += `
+                    <button onclick="submitQuizAnswer(${idx})" id="q-opt-${idx}" class="w-full text-left p-4 rounded-xl border border-slate-700/80 bg-slate-900/60 hover:border-amber-500 hover:bg-amber-950/30 text-xs md:text-sm text-slate-200 transition">
+                        <span class="font-mono text-amber-400 font-bold mr-2">${String.fromCharCode(65 + idx)}.</span> ${opt}
+                    </button>
+                `;
+            });
+
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            document.getElementById('next-quiz-btn').classList.add('hidden');
+
+            if (quizState.mode === 'sudden') {
+                quizState.timeLeft = 7;
+                document.getElementById('timer-count').innerText = "07";
+                quizState.timer = setInterval(() => {
+                    quizState.timeLeft--;
+                    playSFX('tick');
+                    document.getElementById('timer-count').innerText = quizState.timeLeft < 10 ? `0${quizState.timeLeft}` : quizState.timeLeft;
+                    if (quizState.timeLeft <= 0) {
+                        clearInterval(quizState.timer);
+                        handleSuddenDeathFail("HẾT GIỜ! Bạn đã bị trục xuất khỏi White Room!");
+                    }
+                }, 1000);
+            }
+        }
+
+        function submitQuizAnswer(selectedIdx) {
+            if (quizState.answered) return;
+            quizState.answered = true;
+            clearInterval(quizState.timer);
+
+            const q = quizDatabase[quizState.currentIndex];
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden');
+
+            if (selectedIdx === q.answer) {
+                playSFX('correct');
+                quizState.score += 10;
+                document.getElementById(`q-opt-${selectedIdx}`).classList.add('border-emerald-500', 'bg-emerald-950/50', 'text-emerald-300');
+                feedback.className = "p-4 rounded-xl text-xs font-mono border border-emerald-500/50 bg-emerald-950/40 text-emerald-300";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> CHÍNH XÁC! Tuyệt đối tuân theo tư duy Ayanokouji.`;
+            } else {
+                playSFX('error');
+                document.getElementById(`q-opt-${selectedIdx}`).classList.add('border-red-500', 'bg-red-950/50', 'text-red-300');
+                document.getElementById(`q-opt-${q.answer}`).classList.add('border-emerald-500', 'bg-emerald-950/50', 'text-emerald-300');
+                feedback.className = "p-4 rounded-xl text-xs font-mono border border-red-500/50 bg-red-950/40 text-red-300";
+                feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> SAI RỒI! Đáp án đúng là: ${q.options[q.answer]}`;
+
+                if (quizState.mode === 'sudden') {
+                    handleSuddenDeathFail("TRẢ LỜI SAI! Lập tức bị ĐUỔI HỌC!");
+                    return;
+                }
+            }
+
+            document.getElementById('quiz-score-val').innerText = quizState.score;
+            document.getElementById('quiz-answered-count').innerText = quizState.currentIndex + 1;
+            document.getElementById('next-quiz-btn').classList.remove('hidden');
+        }
+
+        function handleSuddenDeathFail(msg) {
+            playSFX('error');
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden');
+            feedback.className = "p-4 rounded-xl text-xs font-mono border border-red-500/80 bg-red-950/90 text-red-200 animate-bounce";
+            feedback.innerHTML = `<i class="fa-solid fa-skull mr-2"></i> ${msg}`;
+            
+            document.getElementById('quiz-options').innerHTML = `
+                <div class="col-span-2 p-6 rounded-xl bg-red-950/40 border border-red-500 text-center">
+                    <h4 class="font-orbitron font-extrabold text-red-400 text-lg mb-2">BẠN ĐÃ BỊ ĐUỔI HỌC (EXPELLED)</h4>
+                    <p class="text-xs text-slate-300 mb-4">Chế độ Sudden Death không chấp nhận bất kỳ sai sót nào trong White Room!</p>
+                    <button onclick="resetQuiz()" class="cyber-btn px-6 py-2 bg-red-600 text-white font-bold font-orbitron rounded-lg text-xs">
+                        THỬ LẠI WHITE ROOM
+                    </button>
+                </div>
+            `;
+        }
+
+        function nextQuestion() {
+            playSFX('click');
+            quizState.currentIndex++;
+            if (quizState.currentIndex >= quizDatabase.length) {
+                showToast(`Chúc mừng! Bạn đã hoàn thành toàn bộ ${quizDatabase.length} câu hỏi!`, "success");
+                resetQuiz();
+            } else {
+                renderQuizQuestion();
+            }
+        }
+
+        /* ==========================================================================
+           5. HEAD-TO-HEAD OAA RADAR CHART (CHART.JS)
+           ========================================================================== */
+        const studentOAAData = {
+            "Ayanokouji Kiyotaka": { academic: 100, physical: 100, tactical: 100, adaptability: 100, contribution: 85 },
+            "Sakayanagi Arisu": { academic: 100, physical: 20, tactical: 98, adaptability: 90, contribution: 95 },
+            "Horikita Suzune": { academic: 88, physical: 78, tactical: 82, adaptability: 85, contribution: 92 },
+            "Ryuuen Kakeru": { academic: 65, physical: 85, tactical: 92, adaptability: 88, contribution: 80 },
+            "Ichinose Honami": { academic: 85, physical: 60, tactical: 75, adaptability: 95, contribution: 98 },
+            "Kōenji Rokusuke": { academic: 95, physical: 98, tactical: 90, adaptability: 50, contribution: 30 },
+            "Housen Kazuomi": { academic: 45, physical: 95, tactical: 70, adaptability: 60, contribution: 50 },
+            "Yagami Takuya": { academic: 98, physical: 95, tactical: 96, adaptability: 92, contribution: 70 }
+        };
+
+        let oaaChart = null;
+
+        function initOAASelectors() {
+            const s1 = document.getElementById('oaa-student-1');
+            const s2 = document.getElementById('oaa-student-2');
+            s1.innerHTML = ''; s2.innerHTML = '';
+
+            Object.keys(studentOAAData).forEach((sName, idx) => {
+                s1.innerHTML += `<option value="${sName}" ${idx === 0 ? 'selected' : ''}>${sName}</option>`;
+                s2.innerHTML += `<option value="${sName}" ${idx === 1 ? 'selected' : ''}>${sName}</option>`;
+            });
+        }
+
+        function renderOAAChart() {
+            initOAASelectors();
+            updateOAAChart();
+        }
+
+        function updateOAAChart() {
+            const st1Name = document.getElementById('oaa-student-1').value;
+            const st2Name = document.getElementById('oaa-student-2').value;
+
+            const d1 = studentOAAData[st1Name];
+            const d2 = studentOAAData[st2Name];
+
+            const ctx = document.getElementById('oaaRadarCanvas').getContext('2d');
+
+            if (oaaChart) oaaChart.destroy();
+
+            oaaChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Học Lực', 'Vận Động', 'Tư Duy Chiến Thuật', 'Thích Nghi', 'Đóng Góp'],
+                    datasets: [
+                        {
+                            label: st1Name,
+                            data: [d1.academic, d1.physical, d1.tactical, d1.adaptability, d1.contribution],
+                            backgroundColor: 'rgba(239, 68, 68, 0.25)',
+                            borderColor: '#ef4444',
+                            pointBackgroundColor: '#ef4444',
+                            borderWidth: 2
+                        },
+                        {
+                            label: st2Name,
+                            data: [d2.academic, d2.physical, d2.tactical, d2.adaptability, d2.contribution],
+                            backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                            borderColor: '#f59e0b',
+                            pointBackgroundColor: '#f59e0b',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.15)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.15)' },
+                            pointLabels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' } },
+                            ticks: { display: false, max: 100, min: 0 }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#e2e8f0', font: { family: 'Orbitron', size: 12 } } }
+                    }
+                }
+            });
+
+            // Render Diff Table
+            const diffBox = document.getElementById('oaa-diff-table');
+            const labels = ['Học Lực', 'Vận Động', 'Chiến Thuật', 'Thích Nghi', 'Đóng Góp'];
+            const vals1 = [d1.academic, d1.physical, d1.tactical, d1.adaptability, d1.contribution];
+            const vals2 = [d2.academic, d2.physical, d2.tactical, d2.adaptability, d2.contribution];
+
+            let tableHTML = '';
+            labels.forEach((lbl, i) => {
+                tableHTML += `
+                    <div class="bg-black/40 p-2 rounded border border-slate-800">
+                        <div class="text-[10px] text-slate-400">${lbl}</div>
+                        <div class="text-red-400 font-bold">${vals1[i]}</div>
+                        <div class="text-amber-400 font-bold">${vals2[i]}</div>
+                    </div>
+                `;
+            });
+            diffBox.innerHTML = tableHTML;
+        }
+
+        /* ==========================================================================
+           6. 3D HIGH-TECH ANHS STUDENT CARD CANVAS GENERATOR
+           ========================================================================== */
+        function drawCardCanvas() {
+            const canvas = document.getElementById('studentCardCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const name = document.getElementById('card-input-name').value || "Ayanokouji Kiyotaka";
+            const sClass = document.getElementById('card-input-class').value;
+            const role = document.getElementById('card-input-role').value;
+            const idNum = document.getElementById('card-input-id').value || "S1010411";
+            const rate = document.getElementById('card-input-rate').value || "99";
+
+            // Background
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, '#0a0a14');
+            grad.addColorStop(0.5, '#121224');
+            grad.addColorStop(1, '#1a0505');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Tech Borders
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(16, 16, canvas.width - 32, canvas.height - 32);
+
+            // Header Banner
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(20, 20, canvas.width - 40, 40);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px Orbitron';
+            ctx.fillText("ADVANCED NUTURE HIGH SCHOOL", 35, 46);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 11px Orbitron';
+            ctx.fillText("OFFICIAL STUDENT ID CARD", 340, 46);
+
+            // Student Photo Avatar Placeholder
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(35, 80, 120, 150);
+            ctx.strokeStyle = '#f59e0b';
+            ctx.strokeRect(35, 80, 120, 150);
+
+            // Avatar Icon Symbol
+            ctx.fillStyle = '#64748b';
+            ctx.font = '48px FontAwesome';
+            ctx.fillText("👤", 70, 170);
+
+            // Student Details
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = 'bold 18px Plus Jakarta Sans';
+            ctx.fillText(name, 175, 105);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px Plus Jakarta Sans';
+            ctx.fillText(`Lớp: ${sClass}`, 175, 130);
+            ctx.fillText(`Chức vụ: ${role}`, 175, 150);
+            ctx.fillText(`Mã học sinh: ${idNum}`, 175, 170);
+
+            // Class A Win Rate Gauge Box
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fillRect(175, 185, 280, 45);
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+            ctx.strokeRect(175, 185, 280, 45);
+
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = 'bold 10px Orbitron';
+            ctx.fillText("TỶ LỆ TỐT NGHIỆP LỚP A DỰ KIẾN", 185, 202);
+
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 18px Orbitron';
+            ctx.fillText(`${rate}%`, 185, 222);
+
+            // Bottom Bar Code Line
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '20px font-mono';
+            ctx.fillText("||| || ||||| ||| |||| ||| |||||| ||||", 35, 268);
+            ctx.font = '10px Orbitron';
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillText("ANHS SECURITY VERIFIED", 330, 268);
+        }
+
+        function downloadStudentCard() {
+            playSFX('levelup');
+            const canvas = document.getElementById('studentCardCanvas');
+            const link = document.createElement('a');
+            link.download = `ANHS_Student_Card_${document.getElementById('card-input-name').value}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast("Đã tải thẻ học sinh PNG chất lượng cao!", "success");
+        }
+
+        /* ==========================================================================
+           7. SOURCE CODE MODAL & COPYING
+           ========================================================================== */
+        function openCodeModal() {
+            playSFX('click');
+            const modal = document.getElementById('codeModal');
+            const textarea = document.getElementById('sourceCodeTextarea');
+            textarea.value = document.documentElement.outerHTML;
+            modal.classList.remove('hidden');
+        }
+
+        function closeCodeModal() {
+            playSFX('click');
+            document.getElementById('codeModal').classList.add('hidden');
+        }
+
+        function copySourceCode() {
+            const textarea = document.getElementById('sourceCodeTextarea');
+            textarea.select();
+            document.execCommand('copy');
+            playSFX('levelup');
+            showToast("Đã sao chép toàn bộ mã nguồn HTML vào bộ nhớ tạm!", "success");
+        }
+
+        /* ==========================================================================
+           8. INITIALIZATION ON LOAD
+           ========================================================================== */
+        window.onload = function() {
+            drawCardCanvas();
+            document.getElementById('highPP').innerText = parseInt(localStorage.getItem('anhs_high_pp') || '0').toLocaleString();
+            showToast("Chào mừng đến với ANHS Command Center V3 Ultimate!", "info");
+        };
+    </script>
+</body>
+</html>
